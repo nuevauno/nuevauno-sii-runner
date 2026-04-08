@@ -1,0 +1,46 @@
+services:
+  sii-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RUNNER_API_KEY: ${RUNNER_API_KEY:?}
+      RUNNER_DATA_ROOT: /data/kodo-sii
+      RUNNER_HEADLESS: ${RUNNER_HEADLESS:-true}
+      RUNNER_TIMEOUT_MS: ${RUNNER_TIMEOUT_MS:-30000}
+      RUNNER_SLOW_MO_MS: ${RUNNER_SLOW_MO_MS:-0}
+      RUNNER_MAX_WORKERS: ${RUNNER_MAX_WORKERS:-1}
+      SII_LOGIN_URL: ${SII_LOGIN_URL:?}
+      SII_TARGET_MENU_URL: ${SII_TARGET_MENU_URL:?}
+      SII_USERNAME_RUT: ${SII_USERNAME_RUT:?}
+      SII_PASSWORD: ${SII_PASSWORD:?}
+      SII_CERTIFICATE_PASSWORD: ${SII_CERTIFICATE_PASSWORD:?}
+      SII_SELLER_NAME: ${SII_SELLER_NAME:?}
+      SII_RECIPIENT_NAME: ${SII_RECIPIENT_NAME:?}
+      SII_RECIPIENT_RUT: ${SII_RECIPIENT_RUT:?}
+      SII_RECIPIENT_BUSINESS: ${SII_RECIPIENT_BUSINESS:?}
+      SII_RECIPIENT_ADDRESS: ${SII_RECIPIENT_ADDRESS:?}
+      SII_RECIPIENT_CITY: ${SII_RECIPIENT_CITY:?}
+      SII_RECIPIENT_COMMUNE: ${SII_RECIPIENT_COMMUNE:?}
+      SII_TRANSFER_TYPE: ${SII_TRANSFER_TYPE:?}
+      SII_TRANSPORTER_RUT: ${SII_TRANSPORTER_RUT:?}
+      SII_VEHICLE_PATENT: ${SII_VEHICLE_PATENT:?}
+      SII_DRIVER_RUT: ${SII_DRIVER_RUT:?}
+      SII_DRIVER_NAME: ${SII_DRIVER_NAME:?}
+      SII_AUTO_DESCRIPTION: ${SII_AUTO_DESCRIPTION:?}
+      SII_BUS_DESCRIPTION: ${SII_BUS_DESCRIPTION:?}
+      SII_UNIT_PRICE: ${SII_UNIT_PRICE:-1}
+      SII_REFERENCE_PREFIX: ${SII_REFERENCE_PREFIX:?}
+    expose:
+      - "8080"
+    volumes:
+      - runner-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  runner-data:
