@@ -33,6 +33,8 @@ services:
       SII_REFERENCE_PREFIX: ${SII_REFERENCE_PREFIX:?}
     expose:
       - "8080"
+    ports:
+      - "127.0.0.1:${RUNNER_HOST_PORT:-18080}:8080"
     labels:
       - traefik.enable=true
       - traefik.http.routers.sii-runner.rule=Host(`${SII_RUNNER_HOST:?}`)

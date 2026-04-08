@@ -93,6 +93,7 @@ Optional env:
 - `RUNNER_TIMEOUT_MS` default `30000`
 - `RUNNER_SLOW_MO_MS` default `0`
 - `RUNNER_MAX_WORKERS` default `1`
+- `RUNNER_HOST_PORT` default `18080`
 
 ## Local run
 
