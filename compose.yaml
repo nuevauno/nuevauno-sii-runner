@@ -33,6 +33,12 @@ services:
       SII_REFERENCE_PREFIX: ${SII_REFERENCE_PREFIX:?}
     expose:
       - "8080"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sii-runner.rule=Host(`${SII_RUNNER_HOST:?}`)
+      - traefik.http.routers.sii-runner.entrypoints=http,https
+      - traefik.http.routers.sii-runner.tls.certresolver=letsencrypt
+      - traefik.http.services.sii-runner.loadbalancer.server.port=8080
     volumes:
       - runner-data:/data
     healthcheck:

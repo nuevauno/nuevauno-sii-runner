@@ -64,6 +64,7 @@ The service can receive tenant-specific overrides in the request body, but it al
 Required runtime env for the current setup:
 
 - `RUNNER_API_KEY`
+- `SII_RUNNER_HOST`
 - `SII_LOGIN_URL`
 - `SII_TARGET_MENU_URL`
 - `SII_USERNAME_RUT`
