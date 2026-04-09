@@ -1,0 +1,16 @@
+changelog:
+  categories:
+    - title: "New Features"
+      labels: ["type:feature"]
+    - title: "Bug Fixes"
+      labels: ["type:fix"]
+    - title: "Refactoring"
+      labels: ["type:refactor"]
+    - title: "Performance"
+      labels: ["type:perf"]
+    - title: "Documentation"
+      labels: ["type:docs"]
+    - title: "Maintenance"
+      labels: ["type:chore", "dependencies"]
+    - title: "Other"
+      labels: ["*"]

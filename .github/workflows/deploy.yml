@@ -1,0 +1,81 @@
+name: Deploy KODO SII Runner
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to deploy. Leave empty to deploy the current ref."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuevauno-sii-runner-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Runner To Coolify Service
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_HOST: ${{ secrets.VPS_DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ secrets.VPS_DEPLOY_PORT }}
+      DEPLOY_USER: ${{ secrets.VPS_DEPLOY_USER }}
+      SERVICE_PATH: ${{ secrets.COOLIFY_SII_RUNNER_PATH }}
+      PUBLIC_HEALTH_URL: ${{ secrets.SII_RUNNER_HEALTHCHECK_URL }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+      - name: Validate release tag format
+        if: github.event_name == 'release'
+        run: |
+          if ! printf '%s' "${RELEASE_TAG}" | grep -Eq '^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$'; then
+            echo "Release tag must match YYYY.MM.DD or YYYY.MM.DD.N"
+            exit 1
+          fi
+
+      - name: Checkout release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.release_tag || github.sha }}
+          fetch-depth: 0
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.VPS_DEPLOY_SSH_KEY }}
+
+      - name: Trust deploy host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Sync release source to Coolify service path
+        run: |
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.venv/' \
+            --exclude '__pycache__/' \
+            --exclude '.pytest_cache/' \
+            --exclude '.mypy_cache/' \
+            --exclude '.env' \
+            --exclude 'docker-compose.yml' \
+            ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${SERVICE_PATH}/"
+
+      - name: Rebuild service in place
+        run: |
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "
+            set -euo pipefail
+            cd '${SERVICE_PATH}'
+            docker compose -f docker-compose.yml up -d --build --remove-orphans
+            docker compose -f docker-compose.yml ps
+          "
+
+      - name: Verify public health endpoint
+        run: |
+          curl --fail --show-error --silent --retry 12 --retry-delay 5 "${PUBLIC_HEALTH_URL}"

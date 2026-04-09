@@ -124,3 +124,32 @@ docker run --rm -p 8080:8080 --env-file .env -v $(pwd)/data:/data nuevauno-sii-r
 
 Deploy this repo as a Docker Compose application using [compose.yaml](/Users/ahorasoyfelipe/Work/nuevauno/nuevauno-sii-runner/compose.yaml).
 The compose file is already written so Coolify can detect and manage the required environment variables from the dashboard.
+
+## Release and deploy
+
+This repo is intended to follow the Nuevauno release pattern:
+
+1. merge validated changes into `main`
+2. publish a GitHub release tag in `YYYY.MM.DD` or `YYYY.MM.DD.N` format
+3. GitHub Actions syncs the tagged source into the existing Coolify service path
+4. the workflow rebuilds and restarts the Coolify-managed service in place
+5. the public healthcheck is verified after deploy
+
+The deploy workflow is in [.github/workflows/deploy.yml](/Users/ahorasoyfelipe/Work/nuevauno/nuevauno-sii-runner/.github/workflows/deploy.yml) and expects these GitHub repository secrets:
+
+- `VPS_DEPLOY_HOST`
+- `VPS_DEPLOY_PORT`
+- `VPS_DEPLOY_USER`
+- `VPS_DEPLOY_SSH_KEY`
+- `COOLIFY_SII_RUNNER_PATH`
+- `SII_RUNNER_HEALTHCHECK_URL`
+
+Current production values for this service:
+
+- `COOLIFY_SII_RUNNER_PATH=/data/coolify/services/ibfuvhj3ogi3pskkqh0fk6l7`
+- `SII_RUNNER_HEALTHCHECK_URL=https://sii-runner.nuevauno.com/health`
+
+Important operational note:
+
+- the service remains visible and managed in Coolify
+- the workflow redeploys the existing Coolify service instead of bypassing it with a separate process manager
